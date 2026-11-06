@@ -1,6 +1,7 @@
 import heapq
 import time
 import re
+import matplotlib.pyplot as plt
 
 
 def count_words(text):
@@ -18,18 +19,37 @@ def get_top_k_words(word_counts, k):
 
     for word, count in word_counts.items():
         if len(min_heap) < k:
-            # إذا لم يمتلئ الـ Heap بعد، نضيف العنصر
             heapq.heappush(min_heap, (count, word))
         elif count > min_heap[0][0]:
-            # إذا كان تكرار الكلمة أكبر من الجذر (أصغر عنصر في الـ Heap)، نستبدله
             heapq.heapreplace(min_heap, (count, word))
 
-    # الخطوة 4: ترتيب محتويات الـ Heap تنازلياً حسب التكرار للطباعة
+    # الخطوة 4: ترتيب محتويات الـ Heap تنازلياً حسب التكرار
     return sorted(min_heap, key=lambda x: x[0], reverse=True)
 
 
+def plot_top_words(top_k_data, k):
+    """رسم مخطط أعمدة (Bar Chart) لأعلى k كلمات تكراراً"""
+    words = [word for count, word in top_k_data]
+    counts = [count for count, word in top_k_data]
+
+    plt.figure(figsize=(8, 5))
+    bars = plt.bar(words, counts, color="royalblue", edgecolor="black", width=0.5)
+
+    # كتابة الرقم فوق كل عمود
+    for bar in bars:
+        yval = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width() / 2, yval + 200, int(yval), ha="center", va="bottom")
+
+    plt.title(f"Top {k} Most Frequent Words")
+    plt.xlabel("Words")
+    plt.ylabel("Frequency (Count)")
+    plt.grid(axis="y", linestyle="--", alpha=0.7)
+    plt.tight_layout()
+    plt.savefig("top_k_words.png")
+    plt.show()
+
+
 def run_project():
-    # تجربة أولى على المثال المذكور في الصورة
     sample_text = "to be or not to be"
     k_sample = 2
     counts = count_words(sample_text)
@@ -40,18 +60,17 @@ def run_project():
     print(f"Word Counts: {counts}")
     print(f"Top {k_sample} Words: {[(word, count) for count, word in top_sample]}\n")
 
-    # تجربة ثانية على نص كبير وقياس الوقت
     print("--- Large Text Benchmark ---")
     large_words = ["algorithm", "heap", "sort", "data", "tree", "graph", "code", "python"]
-    # توليد نص كبير (100,000 كلمة) بتكرارات متفاوتة
     large_text = " ".join(
         [large_words[i % len(large_words)] for i in range(100000)]
         + ["heap"] * 5000
         + ["algorithm"] * 3000
         + ["python"] * 2000
+        + ["data"] * 1000
     )
 
-    k = 3
+    k = 5
     start_time = time.perf_counter()
 
     large_counts = count_words(large_text)
@@ -64,6 +83,9 @@ def run_project():
         print(f"{rank}. '{word}' -> {count} times")
 
     print(f"\nExecution Time: {elapsed_time:.6f} seconds")
+
+    # عرض وحفظ الرسم البياني
+    plot_top_words(top_k, k)
 
 
 if __name__ == "__main__":
